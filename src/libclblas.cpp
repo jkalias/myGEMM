@@ -16,8 +16,12 @@
 // Common include
 #include "common.h"
 
+#ifdef __APPLE__
+#include <Accelerate/Accelerate.h>
+#else
 // Include OpenCL and clBlas
 #include <clBLAS.h>
+#endif
 
 // =================================================================================================
 
@@ -26,6 +30,24 @@
 void libclblas(float* A, float* B, float* C,
                int K, int M, int N,
                int timerID) {
+#ifdef __APPLE__
+    enum CBLAS_ORDER order = CblasRowMajor;
+    enum CBLAS_TRANSPOSE trans = CblasNoTrans;
+
+    const int lda = M;
+    const int ldb = K;
+    const int ldc = M;
+
+    double startTime = timer();
+    for (int r=0; r<NUM_RUNS; r++) {
+        // Call cblas_sgemm
+        cblas_sgemm(order, trans, trans, M, N, K, 1.0, A, lda, B, ldb, 0.0, C, ldc);
+    }
+
+    // End the timed loop
+    timers[timerID].t += (timer() - startTime) / (double)NUM_RUNS;
+    timers[timerID].kf += ((long)K * (long)M * (long)N * 2) / 1000;
+#else
     cl_int err;
 
     // Define OpenCL variables
@@ -103,6 +125,7 @@ void libclblas(float* A, float* B, float* C,
     // Clean-up OpenCL and clBlas 
     clReleaseCommandQueue(queue);
     clReleaseContext(ctx);
+#endif
 }
 
 // =================================================================================================

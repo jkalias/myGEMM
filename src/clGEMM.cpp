@@ -17,7 +17,11 @@
 #include "common.h"
 
 // Include OpenCL 
+#ifdef __APPLE__
+#include <OpenCL/opencl.h>
+#else
 #include <CL/cl.h>
+#endif
 
 // Include kernel constants
 #include "settings.h"

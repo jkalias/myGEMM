@@ -35,14 +35,15 @@
 #define ALPHA 1.0f
 #define BETA 0.0f
 
+// Iris Graphics 5100, 40 Execution units, 1.2 GHz, 704-768 GFLOPS
 // Define the current GPU's parameters
-#define GPU_NAME "Tesla K40m"
-#define GPU_CLOCK 0.745 // Core clock in GHz
+#define GPU_NAME "Intel Iris"
+#define GPU_CLOCK 1.2 // Core clock in GHz
 #define GPU_CORES 2880 // Total number of CUDA cores
 #define GPU_MOD 2 // Fused multiply-add
 
 // OpenCL settings
-#define MAX_NUM_DEVICES 16
+#define MAX_NUM_DEVICES 40
 #define MAX_DEVICE_NAME 1024
 #define CURRENT_DEVICE 0
 

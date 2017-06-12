@@ -15,17 +15,25 @@
 
 # Set the location of CUDA, OpenCL and clBlas
 CUDADIR = $(CUDA_HOME)
-OPENCLDIR = $(CUDA_HOME)
+OPENCLDIR = $(/System/Library/Frameworks/OpenCL.framework/)
+#OPENCLDIR = $(CUDA_HOME)
 CLBLASDIR = $(CLBLAS_HOME)
 
 # Disable all CUDA components (including cuBLAS) in the code to run on a non-NVIDIA system
-ENABLE_CUDA = 1
+ENABLE_CUDA = 0
 
 # ==================================================================================================
 
 # Compilers
 CXX = g++
 NVCC = nvcc
+
+# Check for 32-bit vs 64-bit
+PROC_TYPE = $(strip $(shell uname -m | grep 64))
+ 
+# Check for Mac OS
+OS = $(shell uname -s 2>/dev/null | tr [:lower:] [:upper:])
+DARWIN = $(strip $(findstring DARWIN, $(OS)))
 
 # Compiler flags
 CXXFLAGS += -O3 -Wall
@@ -44,9 +52,10 @@ ifeq ($(ENABLE_CUDA),1)
 endif
 
 # Load OpenCL and the clBlas library
-INCLUDES += -I$(OPENCLDIR)/include -I$(CLBLASDIR)/include
-LDFLAGS += -L$(OPENCLDIR)/lib64 -L$(CLBLASDIR)/lib64
-LDFLAGS += -lOpenCL -lclBLAS
+INCLUDES += -I$(OPENCLDIR)/include -I$(OPENCLDIR)/Headers -I$(CLBLASDIR)/include
+#LDFLAGS += -L$(OPENCLDIR)/lib64 -L$(CLBLASDIR)/lib64
+LDFLAGS += -framework OpenCL -framework Accelerate
+#LDFLAGS += -lOpenCL -lclBLAS
 
 # Load CUDA and the cuBLAS library
 ifeq ($(ENABLE_CUDA),1)
@@ -65,6 +74,17 @@ ifeq ($(ENABLE_CUDA),1)
 	OBJS +=  $(GPUSOURCES:%.cu=$(OBJDIR)/%.cu.o)
 endif
 BIN = $(BINDIR)/myGEMM
+
+ifneq ($(DARWIN),)
+        CFLAGS += -DMAC
+        LDFLAGS += -framework OpenCL
+
+        ifeq ($(PROC_TYPE),)
+                CFLAGS+=-arch i386
+        else
+                CFLAGS+=-arch x86_64
+        endif
+endif
 
 # ==================================================================================================
 
